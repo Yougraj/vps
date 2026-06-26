@@ -1,19 +1,49 @@
-name: SSH into Runner
+name: VNC Desktop Runner (macOS + Ngrok)
 on:
   push:
     branches: [ main ]
-  workflow_dispatch: # Allows you to manually trigger this workflow from the GitHub UI
+  workflow_dispatch: # Allows manual trigger from the GitHub UI
 
 jobs:
-  ssh-session:
+  vnc-session:
     runs-on: macos-latest
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
 
-      - name: Start tmate SSH Session
-        uses: mxschmitt/action-tmate@v3
-        with:
-          # Highly recommended: Only allow the GitHub user who triggered the run to SSH in.
-          # It automatically fetches your public SSH keys registered on GitHub.
-          limit-access-to-actor: true
+      - name: Enable macOS VNC Server
+        run: |
+          echo "Enabling macOS Screen Sharing..."
+          sudo /System/Library/CoreServices/RemoteManagement/ARDAgent.app/Contents/Resources/kickstart \
+            -activate \
+            -configure -access -on \
+            -configure -vncpw 0000 \
+            -configure -clientopts -setvnclegacy -vnclegacy yes \
+            -restart -agent -privs -all
+
+      - name: Install Ngrok
+        run: |
+          echo "Installing Ngrok via Homebrew..."
+          brew install ngrok
+
+      - name: Start VNC Tunnel (Ngrok)
+        env:
+          NGROK_AUTHTOKEN: ${{ secrets.NGROK_AUTHTOKEN }}
+        run: |
+          if [ -z "$NGROK_AUTHTOKEN" ]; then
+            echo "❌ Error: NGROK_AUTHTOKEN secret is not set!"
+            echo "Please add your NGROK_AUTHTOKEN to your GitHub repository secrets."
+            exit 1
+          fi
+          
+          echo "Configuring Ngrok token..."
+          ngrok config add-authtoken "$NGROK_AUTHTOKEN"
+          
+          echo "=========================================================="
+          echo "🔑 VNC Password is set to: 0000"
+          echo "📌 Look for the tcp://0.tcp.ngrok.io:... url below."
+          echo "🔌 Connect using RealVNC Viewer to: hostname::port"
+          echo "=========================================================="
+          
+          # Starts the tunnel and keeps it open
+          ngrok tcp 5900

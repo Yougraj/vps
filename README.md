@@ -1,66 +1,61 @@
-# Temporary GitHub Actions SSH VM (tmate)
+# Automated GitHub Actions VNC Desktop (macOS + Ngrok)
 
-This repository contains a GitHub Actions workflow that allows you to spin up a temporary macOS or Linux virtual machine and access it interactively via SSH or a web terminal.
+This repository contains a GitHub Actions workflow that automatically boots up a macOS virtual machine, starts Apple's built-in VNC server with the password `0000`, and tunnels it using **Ngrok** so you can connect securely using **RealVNC Viewer**.
 
 ---
 
-## 🛠️ How to Set It Up
+## 🛠️ Step 1: Add your Ngrok Authtoken to GitHub Secrets
+Because Ngrok requires authentication to tunnel TCP connections, you need to add your token to your GitHub repository's secrets:
 
-### 1. Register your SSH Key with GitHub (Prerequisite)
-The workflow is configured with `limit-access-to-actor: true` for security. This means only you can SSH into the machine, using the SSH keys associated with your GitHub profile.
-* If you haven't already, add your public SSH key (`id_rsa.pub` or `id_ed25519.pub`) to your GitHub account under **Settings > SSH and GPG keys**.
-
-### 2. Push the files to GitHub
-1. Initialize a git repository in this folder if you haven't already:
-   ```bash
-   git init
-   git add .
-   git commit -m "Add SSH workflow and README"
+1. Log in to [ngrok.com](https://ngrok.com/) and go to your dashboard to copy your **Authtoken**.
+2. Go to your repository on GitHub.
+3. Click on **Settings** (top menu bar) > **Secrets and variables** (left sidebar) > **Actions**.
+4. Click the green **New repository secret** button.
+5. Set the **Name** to:
+   ```text
+   NGROK_AUTHTOKEN
    ```
-2. Create a new repository on GitHub.
-3. Push this codebase to your main/default branch.
+6. Paste your copied token into the **Value** box and click **Add secret**.
 
 ---
 
-## 🚀 How to Launch the SSH Runner
+## 🚀 Step 2: Push the Files & Start the VNC Desktop
 
-1. Open your repository on GitHub.
-2. Click on the **Actions** tab at the top.
-3. In the left-hand menu under *Workflows*, select **SSH into Runner**.
-4. Click the **Run workflow** dropdown on the right side of the screen.
-5. Click the green **Run workflow** button.
+1. Push these files to the `main` branch of your repository:
+   ```bash
+   git add .
+   git commit -m "Configure macOS VNC with Ngrok"
+   git push origin main
+   ```
 
----
-
-## 🔌 How to Connect
-
-1. Refresh the Actions page and click on the newly created active workflow run (it will have a yellow in-progress circle).
-2. Click on the **ssh-session** job on the left or in the main panel.
-3. Click to expand the **Start tmate SSH Session** step in the logs.
-4. You will see two connection links:
-   * **Web shell:** Click the HTTP link (e.g. `https://tmate.io/t/r/...`) to open a terminal directly inside your web browser.
-   * **SSH:** Copy the SSH command (e.g. `ssh ...@ny1.tmate.io`) and run it in your computer's terminal:
-     ```bash
-     ssh <session-token>@ny1.tmate.io
-     ```
+2. View the Action Console:
+   * Go to the **Actions** tab on your GitHub repository.
+   * Select the **VNC Desktop Runner (macOS + Ngrok)** workflow and click on the running job.
+   * Expand the **Start VNC Tunnel (Ngrok)** step to see the console logs.
 
 ---
 
-## 🖥️ Runner Specifications
+## 🔌 Step 3: Connect using RealVNC Viewer
 
-Depending on the `runs-on` value in [.github/workflows/ssh.yml](file://.github/workflows/ssh.yml):
-
-| Operating System | CPU | RAM | Storage |
-| :--- | :--- | :--- | :--- |
-| **macOS** (`macos-latest`) | Apple Silicon (M1/M2 vCPU) | 14 GB | ~14 GB available |
-| **Linux** (`ubuntu-latest`) | 4-core vCPU | 16 GB | ~14 GB available |
-
-> **Tip:** You can switch between macOS and Linux by editing the `runs-on` value in [.github/workflows/ssh.yml](file://.github/workflows/ssh.yml).
+1. Find the connection URL in the logs. It will look like this:
+   ```text
+   tcp://0.tcp.ngrok.io:12345
+   ```
+2. Open **RealVNC Viewer** on your local computer.
+3. Paste the address using a **double colon (`::`)** to separate the hostname and port number:
+   ```text
+   0.tcp.ngrok.io::12345
+   ```
+4. Click **Connect** (and select Continue if prompted with a security warning).
+5. Enter the VNC password:
+   ```text
+   0000
+   ```
 
 ---
 
-## ⚠️ Important Warnings & Limits
-
-* **Terms of Service:** Using GitHub Actions as a free host, runner, or general-purpose virtual machine violates the GitHub Terms of Service. Doing so excessively or for heavy tasks (like crypto mining or continuous bot hosting) will result in your GitHub account being permanently banned.
-* **6-Hour Limit:** GitHub Actions jobs have a strict maximum runtime of **6 hours**. The VM will automatically shut down and be deleted once this limit is hit.
-* **Ephemeral Storage:** Any files or tools you install or create during your SSH session will be completely lost when the workflow run ends or is cancelled.
+## 🖥️ Specifications
+* **Operating System:** macOS Sequoia (15.x)
+* **Processor:** Apple M1 (Virtual) 3-Core CPU
+* **RAM:** 7 GB
+* **Timeout:** The VM runs for a maximum of **6 hours** before automatically shutting down.
