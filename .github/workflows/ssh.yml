@@ -39,11 +39,22 @@ jobs:
           echo "Configuring Ngrok token..."
           ngrok config add-authtoken "$NGROK_AUTHTOKEN"
           
+          echo "Starting Ngrok in the background..."
+          ngrok tcp 5900 --log=stdout > ngrok.log &
+          
+          # Give Ngrok 5 seconds to connect to the cloud
+          sleep 5
+          
+          # Fetch the public URL from Ngrok's local API using curl and jq
+          NGROK_URL=$(curl --silent http://localhost:4040/api/tunnels | jq --raw-output '.tunnels[0].public_url')
+          
+          echo "=========================================================="
+          echo "⚡️ YOUR VNC TUNNEL URL IS:"
+          echo "👉 $NGROK_URL"
           echo "=========================================================="
           echo "🔑 VNC Password is set to: 0000"
-          echo "📌 Look for the tcp://0.tcp.ngrok.io:... url below."
           echo "🔌 Connect using RealVNC Viewer to: hostname::port"
           echo "=========================================================="
           
-          # Starts the tunnel and keeps it open
-          ngrok tcp 5900
+          # Keep the action running by tailing the logs
+          tail -f ngrok.log
