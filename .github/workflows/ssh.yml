@@ -20,9 +20,10 @@ jobs:
           sudo /System/Library/CoreServices/RemoteManagement/ARDAgent.app/Contents/Resources/kickstart \
             -activate \
             -configure -access -on \
+            -configure -allowAccessFor -allUsers -privs -all \
             -configure -vncpw 0000 \
             -configure -clientopts -setvnclegacy -vnclegacy yes \
-            -restart -agent -privs -all
+            -restart -agent
 
       - name: Install Ngrok
         run: |
