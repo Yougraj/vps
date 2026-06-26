@@ -1,0 +1,17 @@
+name: SSH into Runner
+on:
+  workflow_dispatch: # Allows you to manually trigger this workflow from the GitHub UI
+
+jobs:
+  ssh-session:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Start tmate SSH Session
+        uses: mxschmitt/action-tmate@v3
+        with:
+          # Highly recommended: Only allow the GitHub user who triggered the run to SSH in.
+          # It automatically fetches your public SSH keys registered on GitHub.
+          limit-access-to-actor: true
