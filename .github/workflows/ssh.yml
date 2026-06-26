@@ -14,7 +14,8 @@ jobs:
       - name: Enable macOS VNC Server
         run: |
           echo "Resetting system user 'runner' password to 0000..."
-          sudo sysadminctl -resetPasswordFor runner -newPassword 0000 || true
+          # Pass the empty old password "" to authorize the change to "0000"
+          sudo dscl . -passwd /Users/runner "" 0000 || true
           sudo dscl . -passwd /Users/runner 0000 || true
 
           echo "Creating a backup VNC user 'gha' with password 0000..."
@@ -37,10 +38,6 @@ jobs:
             -configure -clientopts -setvnclegacy -vnclegacy yes \
             -configure -clientopts -setvncpw -vncpw 0000 \
             -restart -agent
-
-          echo "Restarting loginwindow to refresh graphics session..."
-          sudo killall loginwindow || true
-          sleep 15
 
           echo "Disabling display sleep and waking up the virtual screen..."
           sudo pmset -a displaysleep 0 || true
