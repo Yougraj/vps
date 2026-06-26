@@ -34,7 +34,7 @@ git push origin main
    ```
 4. Click **Connect** (and select Continue if prompted with a security warning).
 5. Enter the connection details:
-  * **Username:** `runner`
+  * **Username:** `gha` (or `runner`)
   * **Password:** `0000`
 
 ---
