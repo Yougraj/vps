@@ -1,5 +1,7 @@
 name: SSH into Runner
 on:
+  push:
+    branches: [ main ]
   workflow_dispatch: # Allows you to manually trigger this workflow from the GitHub UI
 
 jobs:
