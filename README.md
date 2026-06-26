@@ -47,10 +47,9 @@ Because Ngrok requires authentication to tunnel TCP connections, you need to add
    0.tcp.ngrok.io::12345
    ```
 4. Click **Connect** (and select Continue if prompted with a security warning).
-5. Enter the VNC password:
-   ```text
-   0000
-   ```
+5. Enter the connection details:
+  * **Username:** `runner`
+  * **Password:** `0000`
 
 ---
 
