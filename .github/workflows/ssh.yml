@@ -1,4 +1,4 @@
-name: VNC Desktop Runner (macOS + Ngrok)
+name: VNC Desktop Runner (macOS + Pinggy)
 on:
   push:
     branches: [ main ]
@@ -17,48 +17,22 @@ jobs:
           sudo sysadminctl -resetPasswordFor runner -newPassword 0000
 
           echo "Enabling macOS Screen Sharing..."
+          # Configure remote management, allow access for all users, and set the VNC password to 0000
           sudo /System/Library/CoreServices/RemoteManagement/ARDAgent.app/Contents/Resources/kickstart \
             -activate \
             -configure -access -on \
             -configure -allowAccessFor -allUsers -privs -all \
-            -configure -vncpw 0000 \
             -configure -clientopts -setvnclegacy -vnclegacy yes \
+            -configure -clientopts -setvncpw -vncpw 0000 \
             -restart -agent
 
-      - name: Install Ngrok
+      - name: Start VNC Tunnel (Pinggy)
         run: |
-          echo "Installing Ngrok via Homebrew..."
-          brew install ngrok
-
-      - name: Start VNC Tunnel (Ngrok)
-        env:
-          NGROK_AUTHTOKEN: ${{ secrets.NGROK_AUTHTOKEN }}
-        run: |
-          if [ -z "$NGROK_AUTHTOKEN" ]; then
-            echo "❌ Error: NGROK_AUTHTOKEN secret is not set!"
-            echo "Please add your NGROK_AUTHTOKEN to your GitHub repository secrets."
-            exit 1
-          fi
-          
-          echo "Configuring Ngrok token..."
-          ngrok config add-authtoken "$NGROK_AUTHTOKEN"
-          
-          echo "Starting Ngrok in the background..."
-          ngrok tcp 5900 --log=stdout > ngrok.log &
-          
-          # Give Ngrok 5 seconds to connect to the cloud
-          sleep 5
-          
-          # Fetch the public URL from Ngrok's local API using curl and jq
-          NGROK_URL=$(curl --silent http://localhost:4040/api/tunnels | jq --raw-output '.tunnels[0].public_url')
-          
-          echo "=========================================================="
-          echo "⚡️ YOUR VNC TUNNEL URL IS:"
-          echo "👉 $NGROK_URL"
           echo "=========================================================="
           echo "🔑 VNC Password is set to: 0000"
+          echo "📌 Look for the tcp://... url below."
           echo "🔌 Connect using RealVNC Viewer to: hostname::port"
           echo "=========================================================="
           
-          # Keep the action running by tailing the logs
-          tail -f ngrok.log
+          # Starts the tunnel and keeps it open
+          ssh -p 443 -o StrictHostKeyChecking=no -R0:localhost:5900 tcp@a.pinggy.io
