@@ -38,6 +38,10 @@ jobs:
             -configure -clientopts -setvncpw -vncpw 0000 \
             -restart -agent
 
+          echo "Restarting loginwindow to refresh graphics session..."
+          sudo killall loginwindow || true
+          sleep 15
+
           echo "Disabling display sleep and waking up the virtual screen..."
           sudo pmset -a displaysleep 0 || true
           caffeinate -u -t 5 || true
