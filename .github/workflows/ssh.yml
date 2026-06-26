@@ -38,6 +38,10 @@ jobs:
             -configure -clientopts -setvncpw -vncpw 0000 \
             -restart -agent
 
+          echo "Disabling display sleep and waking up the virtual screen..."
+          sudo pmset -a displaysleep 0 || true
+          caffeinate -u -t 5 || true
+
       - name: Start VNC Tunnel (Pinggy)
         run: |
           echo "=========================================================="
